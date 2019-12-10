@@ -3,7 +3,7 @@ library(pca3d)
 
 
 #load letter-recognition data
-data <- read.table("dataset/letter-recognition.data", sep=',')
+data <- read.table("datasets/letter-recognition.data", sep=',')
 
 #set num of rows and cols in data
 n_row <- nrow(data) 

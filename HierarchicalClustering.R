@@ -13,8 +13,8 @@ if(DATASET_NAME == "LETTERRECOGNITION")
   x <- as.matrix(data[,2:n_col]) 	# features
   labels <- as.matrix(data[,1]) 
   
-  x = x[1:100, ]
-  labels = labels[1:100]
+  # x = x[1:100, ]
+  # labels = labels[1:100]
   
   
   print(x)
@@ -40,7 +40,7 @@ if(DATASET_NAME == "LETTERRECOGNITION")
 
 # data generation has constant value to obtain the same data
 as.numeric(Sys.time())-> t
-set.seed((t - floor(t)) * 1e8 -> seed)
+set.seed(25)
 
 dataset = scale(dataset, center = DATA_CENTER, scale = DATA_SCALE)
 
@@ -57,7 +57,7 @@ cluster_data = dataset # data_pca$x[, 1:2] # dataset #  # dataset # data_pca$x[,
 # methods : ward.D, ward.D2, single, complete, average, median
 # dist method : "euclidean", "maximum", "manhattan", "canberra", "binary" or "minkowski"
 hierarchical_clustering_result <- hclust(dist(cluster_data,method = "euclidean"), method="average")
-tree_cut = cutree(hierarchical_clustering_result, k = 3)
+tree_cut = cutree(hierarchical_clustering_result, k = 26)
 # show clusters on projected data...
 plot(data_pca$x[, 1:2], col=tree_cut, main="Hierarchical clustering Applied Linkage(Average)")
 plot(hierarchical_clustering_result, main=paste("Hierarchical clustering Applied Linkage(Average) (", ncol(cluster_data), "D)"))
@@ -65,14 +65,14 @@ plot(hierarchical_clustering_result, main=paste("Hierarchical clustering Applied
 
 
 hierarchical_clustering_result <- hclust(dist(cluster_data,method = "euclidean"), method="single")
-tree_cut = cutree(hierarchical_clustering_result, k = 3)
+tree_cut = cutree(hierarchical_clustering_result, k = 26)
 # show clusters on projected data...
 plot(data_pca$x[, 1:2], col=tree_cut, main="Hierarchical clustering Applied Linkage(Single)")
 plot(hierarchical_clustering_result, main=paste("Hierarchical clustering Applied Linkage(Single) (", ncol(cluster_data), "D)"))
 
 
 hierarchical_clustering_result <- hclust(dist(cluster_data,method = "euclidean"), method="complete")
-tree_cut = cutree(hierarchical_clustering_result, k = 3)
+tree_cut = cutree(hierarchical_clustering_result, k = 26)
 # show clusters on projected data...
 plot(data_pca$x[, 1:2], col=tree_cut, main="Hierarchical clustering Applied Linkage(Complete)")
 plot(hierarchical_clustering_result, main=paste("Hierarchical clustering Applied Linkage(Complete) (", ncol(cluster_data), "D)"))
@@ -80,7 +80,7 @@ plot(hierarchical_clustering_result, main=paste("Hierarchical clustering Applied
 
 
 hierarchical_clustering_result <- hclust(dist(cluster_data,method = "euclidean"), method="ward")
-tree_cut = cutree(hierarchical_clustering_result, k = 3)
+tree_cut = cutree(hierarchical_clustering_result, k = 26)
 plot(data_pca$x[, 1:2], col=tree_cut, main="Hierarchical clustering Applied Linkage(Ward)")
 plot(hierarchical_clustering_result, main=paste("Hierarchical clustering Applied Linkage(Ward) (", ncol(cluster_data), "D)"))
 
@@ -91,6 +91,7 @@ set.seed(120)
 result_matrix = matrix(rep(0, 20), nrow = 1)
 for(experiment in 1:100)
 {
+  print(paste("Experiment : ", experiment, "\n"))
   error_vector = c()
   for (k in 1:20)
   {
@@ -104,12 +105,12 @@ for(experiment in 1:100)
   result_matrix = rbind(result_matrix, error_vector)
   
 }
-error_vector = colMeans(result_matrix)
+                  error_vector = colMeans(result_matrix)
 
 plot(x=1:20, type="b", y=error_vector, main="Total within class error and K")
 
 result_matrix = matrix(rep(0, 30), nrow = 1)
-for(experiment in 1:100)
+for(experiment in 1:10)
 {
   error_vector = c()
   for (nstart in 1:30)
@@ -117,7 +118,7 @@ for(experiment in 1:100)
     as.numeric(Sys.time())-> t
     set.seed((t - floor(t)) * 1e8 -> seed)
     
-    temp_kmeans = kmeans(cluster_data, 3,nstart=nstart)
+    temp_kmeans = kmeans(cluster_data, 26,nstart=nstart)
     error_vector = c(error_vector, temp_kmeans$tot.withinss)
   }
   
@@ -129,7 +130,7 @@ error_vector = colMeans(result_matrix)
 plot(x=1:30, type="b", y=error_vector, main="Total within class error and nstart")
 
 result_matrix = matrix(rep(0, 30), nrow = 1)
-for(experiment in 1:100)
+for(experiment in 1:10)
 {
   error_vector = c()
   for (itermax in 1:30)
@@ -137,7 +138,7 @@ for(experiment in 1:100)
     as.numeric(Sys.time())-> t
     set.seed((t - floor(t)) * 1e8 -> seed)
     
-    temp_kmeans = kmeans(cluster_data, 3,nstart=10, iter.max = itermax)
+    temp_kmeans = kmeans(cluster_data, 26,nstart=10, iter.max = itermax)
     error_vector = c(error_vector, temp_kmeans$tot.withinss)
   }
   
@@ -148,7 +149,7 @@ error_vector = colMeans(result_matrix)
 
 plot(x=1:30, type="b", y=error_vector, main="Total within class error and itermax")
 
-kmeans_result = kmeans(cluster_data, 3,nstart=20)
+kmeans_result = kmeans(cluster_data, 26,nstart=20)
 plot(data_pca$x[, 1:2], col=kmeans_result$cluster, main="Kmeans Applied to Letter Recognition")
 # points(kmeans_result$centers, col = "orange", pch=16, cex=3)
 

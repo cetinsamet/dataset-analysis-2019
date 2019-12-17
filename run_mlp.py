@@ -6,6 +6,7 @@ from sklearn.preprocessing import normalize
 from torch.utils.data import TensorDataset, DataLoader
 import matplotlib.pyplot as plt
 import matplotlib._color_data as mcd
+from mpl_toolkits.mplot3d import Axes3D
 
 
 N_EPOCH         = 200
@@ -13,6 +14,8 @@ SEED            = 123
 DATAPATH 		= "./datasets/letter-recognition.data"
 SMALLDATAPATH 	= "./datasets/letter-recognition-visual.data"
 COLORS          = [mcd.CSS4_COLORS[list(mcd.CSS4_COLORS.keys())[5 * i]] for i in range(26)]
+K               = 2
+MODELNAME       = "clf_" + str(K) + ".pt"
 
 def load_data(filename):
 	x,y  = [], []
@@ -27,10 +30,10 @@ class Network(nn.Module):
 
     def __init__(self, d_in, d_out):
         super().__init__()
-        self.layer1 = nn.Linear(d_in, 2)
-        self.layer2 = nn.Linear(2, d_out)
-        self.relu   = nn.ReLU()
-        self.batch_norm = nn.BatchNorm1d(2)
+        self.layer1     = nn.Linear(d_in, K)
+        self.layer2     = nn.Linear(K, d_out)
+        self.relu       = nn.ReLU()
+        self.batch_norm = nn.BatchNorm1d(K)
 
     def forward(self, x):
         x_transformed   = self.batch_norm(self.relu(self.layer1(x)))
@@ -91,17 +94,25 @@ def main():
             y_pred = torch.argmax(clf(x)[0], dim=1)
             print("Acc: %.2f" % (float(torch.sum(y_pred == y).item()) / n_sample * 100))
 
-    torch.save(clf, "clf.pt")
+    torch.save(clf, MODELNAME)
     '''
-    clf = torch.load("clf.pt")
+    clf = torch.load(MODELNAME)
     clf.eval()
 
-    fig, ax = plt.subplots()
 
     x_transformed = clf(x)[1].detach().numpy()
     cols = np.asarray(COLORS)[y.detach().numpy()]
-    scatter = ax.scatter(x_transformed[:, 0], x_transformed[:, 1], c=cols, label=y.detach().numpy())
-    plt.show()
+    if K == 2:
+        plt.scatter(x_transformed[:, 0], x_transformed[:, 1], s=[2 for _ in range(20000)], c=cols)
+        plt.show()
+    elif K == 3:
+        fig = plt.figure()
+        ax = Axes3D(fig)
+        ax.scatter(x_transformed[:, 0], x_transformed[:, 1], x_transformed[:, 2], s=[2 for _ in range(20000)], c=cols, marker='.')
+        plt.show()
+    else:
+        raise NotImplementedError
+
 
 
 if __name__ == '__main__':

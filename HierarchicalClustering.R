@@ -56,7 +56,7 @@ cluster_data = dataset # data_pca$x[, 1:2] # dataset #  # dataset # data_pca$x[,
 
 # methods : ward.D, ward.D2, single, complete, average, median
 # dist method : "euclidean", "maximum", "manhattan", "canberra", "binary" or "minkowski"
-hierarchical_clustering_result <- hclust(dist(cluster_data,method = "euclidean"), method="average")
+  hierarchical_clustering_result <- hclust(dist(cluster_data,method = "minkowski", p=16), method="average")
 tree_cut = cutree(hierarchical_clustering_result, k = 26)
 # show clusters on projected data...
 plot(data_pca$x[, 1:2], col=tree_cut, main="Hierarchical clustering Applied Linkage(Average)")
@@ -64,14 +64,14 @@ plot(hierarchical_clustering_result, main=paste("Hierarchical clustering Applied
 
 
 
-hierarchical_clustering_result <- hclust(dist(cluster_data,method = "euclidean"), method="single")
+hierarchical_clustering_result <- hclust(dist(cluster_data,method = "minkowski", p=16), method="single")
 tree_cut = cutree(hierarchical_clustering_result, k = 26)
 # show clusters on projected data...
 plot(data_pca$x[, 1:2], col=tree_cut, main="Hierarchical clustering Applied Linkage(Single)")
 plot(hierarchical_clustering_result, main=paste("Hierarchical clustering Applied Linkage(Single) (", ncol(cluster_data), "D)"))
 
 
-hierarchical_clustering_result <- hclust(dist(cluster_data,method = "euclidean"), method="complete")
+hierarchical_clustering_result <- hclust(dist(cluster_data,method = "minkowski", p=16), method="complete")
 tree_cut = cutree(hierarchical_clustering_result, k = 26)
 # show clusters on projected data...
 plot(data_pca$x[, 1:2], col=tree_cut, main="Hierarchical clustering Applied Linkage(Complete)")
@@ -79,7 +79,7 @@ plot(hierarchical_clustering_result, main=paste("Hierarchical clustering Applied
 
 
 
-hierarchical_clustering_result <- hclust(dist(cluster_data,method = "euclidean"), method="ward")
+hierarchical_clustering_result <- hclust(dist(cluster_data, method = "minkowski", p=16), method="ward")
 tree_cut = cutree(hierarchical_clustering_result, k = 26)
 plot(data_pca$x[, 1:2], col=tree_cut, main="Hierarchical clustering Applied Linkage(Ward)")
 plot(hierarchical_clustering_result, main=paste("Hierarchical clustering Applied Linkage(Ward) (", ncol(cluster_data), "D)"))
@@ -89,7 +89,7 @@ plot(hierarchical_clustering_result, main=paste("Hierarchical clustering Applied
 
 set.seed(120)
 result_matrix = matrix(rep(0, 20), nrow = 1)
-for(experiment in 1:100)
+for(experiment in 1:40)
 {
   print(paste("Experiment : ", experiment, "\n"))
   error_vector = c()
@@ -98,14 +98,14 @@ for(experiment in 1:100)
     as.numeric(Sys.time())-> t
     set.seed((t - floor(t)) * 1e8 -> seed)
     
-    temp_kmeans = kmeans(cluster_data, k,nstart=20)
+    temp_kmeans = kmeans(cluster_data, k,nstart=20, iter.max = 500)
     error_vector = c(error_vector, temp_kmeans$tot.withinss)
   }
   
   result_matrix = rbind(result_matrix, error_vector)
   
 }
-                  error_vector = colMeans(result_matrix)
+                    error_vector = colMeans(result_matrix)
 
 plot(x=1:20, type="b", y=error_vector, main="Total within class error and K")
 
@@ -118,7 +118,7 @@ for(experiment in 1:10)
     as.numeric(Sys.time())-> t
     set.seed((t - floor(t)) * 1e8 -> seed)
     
-    temp_kmeans = kmeans(cluster_data, 26,nstart=nstart)
+    temp_kmeans = kmeans(cluster_data, 26,nstart=nstart, iter.max = 500)
     error_vector = c(error_vector, temp_kmeans$tot.withinss)
   }
   
@@ -149,7 +149,7 @@ error_vector = colMeans(result_matrix)
 
 plot(x=1:30, type="b", y=error_vector, main="Total within class error and itermax")
 
-kmeans_result = kmeans(cluster_data, 26,nstart=20)
+kmeans_result = kmeans(cluster_data, 26,nstart=20, iter.max = 500)
 plot(data_pca$x[, 1:2], col=kmeans_result$cluster, main="Kmeans Applied to Letter Recognition")
 # points(kmeans_result$centers, col = "orange", pch=16, cex=3)
 

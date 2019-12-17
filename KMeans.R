@@ -47,7 +47,7 @@ summary(dataset)
 head(dataset)
 
 # plot(dataset, col = label_colors, main = paste("Dataset center=",DATA_CENTER," scale=", DATA_CENTER))
-kmeans_result = kmeans(dataset, 26,nstart=1)
+kmeans_result = kmeans(dataset, 26,nstart=1, iter.max = 500)
 print(kmeans_result$centers)
 plot(dataset, col=kmeans_result$cluster, main="Kmeans Applied")
 points(kmeans_result$centers, col = "orange", pch=16, cex=3)

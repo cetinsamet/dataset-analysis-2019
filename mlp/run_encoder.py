@@ -7,12 +7,14 @@ from torch.utils.data import TensorDataset, DataLoader
 import matplotlib.pyplot as plt
 import matplotlib._color_data as mcd
 from mpl_toolkits.mplot3d import Axes3D
+from sklearn.preprocessing import scale
+import torch.nn.functional as F
 
 
-N_EPOCH         = 200
+N_EPOCH         = 5
 SEED            = 123
-DATAPATH 		= "./datasets/letter-recognition.data"
-SMALLDATAPATH 	= "./datasets/letter-recognition-visual.data"
+DATAPATH 		= "../datasets/letter-recognition.data"
+SMALLDATAPATH 	= "../datasets/letter-recognition-visual.data"
 COLORS          = [mcd.CSS4_COLORS[list(mcd.CSS4_COLORS.keys())[5 * i]] for i in range(26)]
 K               = 2
 MODELNAME       = "clf_" + str(K) + ".pt"
@@ -36,9 +38,9 @@ class Network(nn.Module):
         self.batch_norm = nn.BatchNorm1d(K)
 
     def forward(self, x):
-        x_transformed   = self.batch_norm(self.relu(self.layer1(x)))
-        out             = self.layer2(x_transformed)
-        return out, x_transformed
+        a = self.batch_norm(self.relu(self.layer1(x)))
+        x = F.sigmoid(self.layer2(a))
+        return x, a
 
 def main():
 
@@ -49,33 +51,34 @@ def main():
     x, y = load_data(DATAPATH)
 
     x = normalize(x, norm='l2')
+    #x = scale(x)
     x = torch.from_numpy(x).float()
 
     y = np.asarray([ord(l) - 65 for l in y])
     y = torch.from_numpy(y).long()
-    '''
+
     n_sample, d_feat = x.shape
     n_label = len(np.unique(y))
 
-    clf         = Network(d_feat, n_label)
-    ce_loss     = nn.CrossEntropyLoss(reduction='sum')
+    clf         = Network(d_feat, d_feat)
+    #ce_loss     = nn.CrossEntropyLoss(reduction='sum')
+    mse_loss    = nn.MSELoss(reduction='sum')
     optimizer   = torch.optim.Adam(clf.parameters(), lr=1e-2)
     lr_schedular = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min')
 
     data        = TensorDataset(x, y)
-    data_loader = DataLoader(data, batch_size=64, shuffle=True, drop_last=False)
-
-
+    data_loader = DataLoader(data, batch_size=32, shuffle=True, drop_last=False)
 
     for epoch_idx in range(N_EPOCH):
 
         clf.train()
         running_loss = 0.
 
-        for feats, labels in data_loader:
+        for feats, _ in data_loader:
 
-            labels_ = clf(feats)[0]
-            batch_loss = ce_loss(labels_, labels)
+            feats_ = clf(feats)[0]
+
+            batch_loss = mse_loss(feats_, feats)
 
             optimizer.zero_grad()
             batch_loss.backward()
@@ -89,29 +92,25 @@ def main():
 
         print("Epoch %4d\tLoss : %s" % (epoch_idx + 1, epoch_loss))
 
-        if (epoch_idx+1) % 10 == 0:
-            clf.eval()
-            y_pred = torch.argmax(clf(x)[0], dim=1)
-            print("Acc: %.2f" % (float(torch.sum(y_pred == y).item()) / n_sample * 100))
-
-    torch.save(clf, MODELNAME)
-    '''
-    clf = torch.load(MODELNAME)
-    clf.eval()
-
 
     x_transformed = clf(x)[1].detach().numpy()
     cols = np.asarray(COLORS)[y.detach().numpy()]
+
     if K == 2:
         plt.scatter(x_transformed[:, 0], x_transformed[:, 1], s=[2 for _ in range(20000)], c=cols)
         plt.show()
     elif K == 3:
         fig = plt.figure()
-        ax = Axes3D(fig)
-        ax.scatter(x_transformed[:, 0], x_transformed[:, 1], x_transformed[:, 2], s=[2 for _ in range(20000)], c=cols, marker='.')
+        ax = fig.add_subplot(111, projection='3d')
+        ax.scatter(x_transformed[:, 0], x_transformed[:, 1], x_transformed[:, 2], s=[2 for _ in range(20000)],
+                   c=cols, marker='.')
+
+        ax.azim = -100
+        ax.elev = 20
         plt.show()
     else:
         raise NotImplementedError
+
 
 
 
